@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Unplugged</title>
-  <meta name="description" content="Tick every day you stay off your phone. Keep the chain alive." />
+  <meta name="description" content="Tick every day you keep your habits. Keep the chain alive." />
   <meta name="theme-color" content="#0b0a14" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
@@ -21,10 +21,12 @@
       --text: #f4f1ff;
       --muted: rgba(244, 241, 255, 0.55);
       --faint: rgba(244, 241, 255, 0.22);
+      /* per-habit theme, overwritten from JS */
       --flame-1: #ffb547;
       --flame-2: #ff6a3d;
       --flame-3: #ff3d7f;
       --flame: linear-gradient(135deg, var(--flame-1), var(--flame-2) 55%, var(--flame-3));
+      --glow: color-mix(in srgb, var(--flame-2) 60%, transparent);
       --good: #7cf0b5;
       --radius: 24px;
     }
@@ -45,11 +47,12 @@
       content: "";
       position: fixed; inset: 0;
       background:
-        radial-gradient(60% 45% at 85% 0%, rgba(255, 106, 61, 0.22), transparent 70%),
-        radial-gradient(55% 40% at 0% 25%, rgba(120, 80, 255, 0.20), transparent 70%),
-        radial-gradient(70% 50% at 50% 110%, rgba(255, 61, 127, 0.14), transparent 70%);
+        radial-gradient(60% 45% at 85% 0%, color-mix(in srgb, var(--flame-2) 24%, transparent), transparent 70%),
+        radial-gradient(55% 40% at 0% 25%, rgba(120, 80, 255, 0.18), transparent 70%),
+        radial-gradient(70% 50% at 50% 110%, color-mix(in srgb, var(--flame-3) 15%, transparent), transparent 70%);
       pointer-events: none;
       z-index: 0;
+      transition: background 500ms;
     }
     main {
       position: relative; z-index: 1;
@@ -62,7 +65,8 @@
     header { display: flex; align-items: flex-end; justify-content: space-between; padding: 4px 4px 0; }
     .brand { font-size: 28px; font-weight: 800; letter-spacing: -0.03em; }
     .brand span { background: var(--flame); -webkit-background-clip: text; background-clip: text; color: transparent; }
-    .today-label { color: var(--muted); font-size: 14px; font-weight: 600; text-align: right; }
+    .today-label { color: var(--muted); font-size: 14px; font-weight: 600; text-align: right; line-height: 1.35; }
+    .today-label small { display: block; color: var(--faint); font-size: 12px; }
 
     .card {
       background: var(--card);
@@ -72,13 +76,53 @@
       -webkit-backdrop-filter: blur(20px);
     }
 
+    /* ---------- Habit switcher ---------- */
+    .habits {
+      display: flex; gap: 8px; overflow-x: auto;
+      margin: 0 -16px; padding: 2px 16px 4px;
+      scrollbar-width: none; scroll-snap-type: x proximity; scroll-padding-inline: 16px;
+    }
+    .habits::-webkit-scrollbar { display: none; }
+    .chip {
+      flex: none; scroll-snap-align: start;
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 14px 9px 10px; border-radius: 999px;
+      border: 1px solid var(--card-border);
+      background: var(--card);
+      color: var(--muted); font: inherit; font-size: 14px; font-weight: 700;
+      cursor: pointer; white-space: nowrap;
+      transition: background 250ms, color 250ms, border-color 250ms;
+    }
+    .chip .em { font-size: 17px; line-height: 1; }
+    .chip .cnt { font-variant-numeric: tabular-nums; font-size: 12px; opacity: 0.8; }
+    .chip .dot { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid currentColor; opacity: 0.45; display: grid; place-items: center; }
+    .chip .dot.on { opacity: 1; border: 0; background: var(--c2); }
+    .chip .dot svg { width: 10px; height: 10px; }
+    .chip.active {
+      color: var(--text);
+      border-color: transparent;
+      background: linear-gradient(rgba(18, 15, 30, 0.9), rgba(18, 15, 30, 0.9)) padding-box,
+                  linear-gradient(135deg, var(--c1), var(--c2), var(--c3)) border-box;
+    }
+    .chip.add { padding: 9px 14px; color: var(--muted); border-style: dashed; }
+
     /* ---------- Hero ---------- */
-    .hero { padding: 28px 20px 22px; text-align: center; overflow: hidden; position: relative; }
+    .hero { padding: 22px 20px 22px; text-align: center; overflow: hidden; position: relative; }
+    .hero-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .habit-name { font-size: 15px; font-weight: 750; color: var(--muted); display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .habit-name span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .icon-btn {
+      width: 34px; height: 34px; border-radius: 11px; border: 0; cursor: pointer; flex: none;
+      background: rgba(255, 255, 255, 0.06); color: var(--muted);
+      display: grid; place-items: center;
+    }
+    .icon-btn svg { width: 16px; height: 16px; }
     .ring-wrap { position: relative; width: 220px; height: 220px; margin: 0 auto; }
     .ring-wrap svg.ring { width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
     .ring-track { stroke: rgba(255, 255, 255, 0.07); }
     .ring-glow { transition: stroke-dashoffset 900ms cubic-bezier(.2, .8, .2, 1); filter: blur(6px); }
     .ring-fill { transition: stroke-dashoffset 900ms cubic-bezier(.2, .8, .2, 1); }
+    .g1 { stop-color: var(--flame-1); } .g2 { stop-color: var(--flame-2); } .g3 { stop-color: var(--flame-3); }
     .ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     .flame { width: 34px; height: 34px; margin-bottom: 2px; transition: transform 300ms, opacity 300ms, filter 300ms; }
     .flame.cold { filter: grayscale(1); opacity: 0.35; }
@@ -108,17 +152,19 @@
       font: inherit; font-size: 18px; font-weight: 750; letter-spacing: -0.01em;
       color: #1a0b07;
       background: var(--flame);
-      box-shadow: 0 10px 30px -8px rgba(255, 90, 60, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+      box-shadow: 0 10px 30px -8px var(--glow), inset 0 1px 0 rgba(255, 255, 255, 0.35);
       display: flex; align-items: center; justify-content: center; gap: 12px;
       transition: transform 120ms ease, box-shadow 200ms, background 300ms, color 300ms;
     }
     .tick-btn:active { transform: scale(0.97); }
     .tick-btn .box {
+      flex: none;
       width: 28px; height: 28px; border-radius: 9px;
       border: 2.5px solid rgba(26, 11, 7, 0.7);
       display: grid; place-items: center;
     }
     .tick-btn .box svg { width: 18px; height: 18px; opacity: 0; transform: scale(0.4); transition: all 250ms cubic-bezier(.3, 1.6, .5, 1); }
+    #tickText { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .tick-btn.done {
       background: rgba(124, 240, 181, 0.12);
       color: var(--good);
@@ -128,7 +174,7 @@
     .tick-btn.done .box svg { opacity: 1; transform: scale(1); }
     .tick-btn.pop { animation: pop 450ms cubic-bezier(.3, 1.6, .5, 1); }
     @keyframes pop { 0% { transform: scale(0.94); } 60% { transform: scale(1.03); } 100% { transform: scale(1); } }
-    .tick-sub { text-align: center; color: var(--muted); font-size: 13px; margin-top: -6px; }
+    .tick-sub { text-align: center; color: var(--muted); font-size: 13px; margin-top: -6px; min-height: 16px; }
 
     /* ---------- Stats ---------- */
     .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
@@ -168,12 +214,12 @@
     }
     .day span { position: relative; z-index: 1; }
     .day.on { color: #1a0b07; font-weight: 800; }
-    .day.on .bg { background: var(--flame); background-size: 700% 100%; box-shadow: 0 4px 16px -6px rgba(255, 90, 60, 0.7); }
+    .day.on .bg { background: var(--flame); background-size: 700% 100%; box-shadow: 0 4px 16px -6px var(--glow); }
     /* contiguous ticks melt into one chain */
     .day.on.join-l .bg { left: -1px; border-top-left-radius: 0; border-bottom-left-radius: 0; }
     .day.on.join-r .bg { right: -1px; border-top-right-radius: 0; border-bottom-right-radius: 0; }
     .day.on.join-l.join-r .bg { box-shadow: none; }
-    .day.today:not(.on) .bg { box-shadow: inset 0 0 0 2px rgba(255, 140, 80, 0.75); }
+    .day.today:not(.on) .bg { box-shadow: inset 0 0 0 2px var(--flame-2); }
     .day.today:not(.on) { color: var(--text); }
     .day.missed { color: rgba(244, 241, 255, 0.35); }
     .day:not(.empty):not(.future):active .bg { transform: scale(0.9); }
@@ -199,15 +245,68 @@
       border: 1px solid transparent;
       background: linear-gradient(var(--bg), var(--bg)) padding-box, var(--flame) border-box;
       color: var(--text);
-      box-shadow: 0 6px 20px -10px rgba(255, 90, 60, 0.8);
+      box-shadow: 0 6px 20px -10px var(--glow);
     }
     .badge.earned .n { background: var(--flame); -webkit-background-clip: text; background-clip: text; color: transparent; }
-    .badge.next { border-style: solid; border-color: rgba(255, 140, 80, 0.35); color: var(--muted); }
+    .badge.next { border-style: solid; border-color: color-mix(in srgb, var(--flame-2) 40%, transparent); color: var(--muted); }
 
     /* ---------- Footer ---------- */
     .foot { display: flex; justify-content: center; gap: 18px; padding-top: 4px; }
     .foot button { background: none; border: 0; color: var(--faint); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; padding: 8px; }
     .install-hint { text-align: center; color: var(--faint); font-size: 12px; line-height: 1.5; padding: 0 20px; }
+
+    /* ---------- Habit editor sheet ---------- */
+    .scrim {
+      position: fixed; inset: 0; z-index: 40;
+      background: rgba(5, 4, 10, 0.6);
+      opacity: 0; pointer-events: none; transition: opacity 250ms;
+    }
+    .scrim.open { opacity: 1; pointer-events: auto; }
+    .sheet {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 41;
+      max-width: 480px; margin: 0 auto;
+      background: #16131f;
+      border: 1px solid var(--card-border); border-bottom: 0;
+      border-radius: 28px 28px 0 0;
+      padding: 10px 20px calc(env(safe-area-inset-bottom) + 20px);
+      transform: translateY(105%); visibility: hidden;
+      transition: transform 380ms cubic-bezier(.2, .9, .3, 1), visibility 0s 380ms;
+      max-height: 90dvh; overflow-y: auto;
+    }
+    .sheet.open { transform: translateY(0); visibility: visible; transition-delay: 0s; }
+    .sheet { --flame: linear-gradient(135deg, var(--flame-1), var(--flame-2) 55%, var(--flame-3)); }
+    .grabber { width: 40px; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.15); margin: 0 auto 14px; }
+    .sheet h2 { margin: 0 0 18px; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+    .field-label { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin: 18px 0 10px; }
+    .name-input {
+      width: 100%; padding: 15px 16px; border-radius: 16px;
+      border: 1px solid var(--card-border); background: rgba(255, 255, 255, 0.05);
+      color: var(--text); font: inherit; font-size: 17px; font-weight: 600;
+      outline: none; user-select: text; -webkit-user-select: text;
+    }
+    .name-input:focus { border-color: var(--flame-2); }
+    .emoji-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; }
+    .emoji-grid button {
+      aspect-ratio: 1; border-radius: 12px; border: 0; cursor: pointer;
+      background: rgba(255, 255, 255, 0.05); font-size: 20px;
+    }
+    .emoji-grid button.sel { background: rgba(255, 255, 255, 0.16); box-shadow: inset 0 0 0 2px var(--flame-2); }
+    .swatches { display: flex; gap: 12px; flex-wrap: wrap; }
+    .swatches button {
+      width: 40px; height: 40px; border-radius: 50%; border: 0; cursor: pointer;
+      box-shadow: 0 0 0 2px #16131f, 0 0 0 2px transparent;
+      transition: box-shadow 200ms;
+    }
+    .swatches button.sel { box-shadow: 0 0 0 3px #16131f, 0 0 0 5px rgba(255, 255, 255, 0.85); }
+    .sheet-actions { display: flex; gap: 10px; margin-top: 26px; }
+    .btn {
+      flex: 1; padding: 16px; border-radius: 16px; border: 0; cursor: pointer;
+      font: inherit; font-size: 16px; font-weight: 750;
+    }
+    .btn.primary { background: var(--flame); color: #1a0b07; }
+    .btn.ghost { background: rgba(255, 255, 255, 0.07); color: var(--text); }
+    .btn.danger { background: none; color: #ff7a8a; flex: none; width: 100%; margin-top: 10px; font-size: 15px; }
+    .btn:disabled { opacity: 0.4; }
 
     /* ---------- Toast & confetti ---------- */
     #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
@@ -239,14 +338,22 @@
       <div class="today-label" id="todayLabel"></div>
     </header>
 
+    <nav class="habits" id="habits" aria-label="Habits"></nav>
+
     <section class="card hero">
+      <div class="hero-top">
+        <div class="habit-name"><span id="heroEmoji"></span><span id="heroName"></span></div>
+        <button class="icon-btn" id="editBtn" aria-label="Edit habit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16v4z" /><path d="M14 6l4 4" /></svg>
+        </button>
+      </div>
       <div class="ring-wrap">
         <svg class="ring" viewBox="0 0 220 220" aria-hidden="true">
           <defs>
             <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#ffb547" />
-              <stop offset="55%" stop-color="#ff6a3d" />
-              <stop offset="100%" stop-color="#ff3d7f" />
+              <stop offset="0%" class="g1" />
+              <stop offset="55%" class="g2" />
+              <stop offset="100%" class="g3" />
             </linearGradient>
           </defs>
           <circle class="ring-track" cx="110" cy="110" r="96" fill="none" stroke-width="14" />
@@ -257,9 +364,9 @@
           <svg class="flame" id="flame" viewBox="0 0 24 24" aria-hidden="true">
             <defs>
               <linearGradient id="flameGrad" x1="0" y1="1" x2="0" y2="0">
-                <stop offset="0%" stop-color="#ff3d7f" />
-                <stop offset="50%" stop-color="#ff6a3d" />
-                <stop offset="100%" stop-color="#ffb547" />
+                <stop offset="0%" class="g3" />
+                <stop offset="50%" class="g2" />
+                <stop offset="100%" class="g1" />
               </linearGradient>
             </defs>
             <path fill="url(#flameGrad)" d="M12 2c.6 3.2-1.2 5-2.8 6.8C7.6 10.6 6 12.4 6 15a6 6 0 0 0 12 0c0-2.1-.9-3.7-2-5 .1 1.6-.5 2.8-1.6 3.4.3-3.6-1.2-8.3-2.4-11.4z" />
@@ -274,7 +381,7 @@
 
     <button class="tick-btn" id="tickBtn" aria-pressed="false">
       <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="#0b0a14" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg></span>
-      <span id="tickText">I stayed off my phone today</span>
+      <span id="tickText"></span>
     </button>
     <div class="tick-sub" id="tickSub"></div>
 
@@ -310,45 +417,104 @@
     <p class="install-hint" id="installHint">On iPhone: tap Share → “Add to Home Screen” to use Unplugged like an app.</p>
   </main>
 
+  <div class="scrim" id="scrim"></div>
+  <form class="sheet" id="sheet" autocomplete="off">
+    <div class="grabber"></div>
+    <h2 id="sheetTitle">New habit</h2>
+    <input class="name-input" id="nameInput" maxlength="40" placeholder="e.g. No phone, Read, Workout" />
+    <div class="field-label">Icon</div>
+    <div class="emoji-grid" id="emojiGrid"></div>
+    <div class="field-label">Colour</div>
+    <div class="swatches" id="swatches"></div>
+    <div class="sheet-actions">
+      <button type="button" class="btn ghost" id="cancelBtn">Cancel</button>
+      <button type="submit" class="btn primary" id="saveBtn">Save</button>
+    </div>
+    <button type="button" class="btn danger" id="deleteBtn">Delete habit</button>
+  </form>
+
   <script>
   (() => {
-    const STORE_KEY = 'unplugged.v1';
+    const STORE_KEY = 'unplugged.v2';
+    const LEGACY_KEY = 'unplugged.v1';
     const MILESTONES = [3, 7, 14, 21, 30, 60, 100, 365];
     const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const THEMES = {
+      ember:   ['#ffb547', '#ff6a3d', '#ff3d7f'],
+      ocean:   ['#5ee7df', '#3fa9f5', '#6a5cff'],
+      forest:  ['#d4f56b', '#5fd38d', '#19b39b'],
+      violet:  ['#f0a6ff', '#b06bff', '#6a4cff'],
+      sunrise: ['#ffe27a', '#ffa94d', '#ff6b6b'],
+      rose:    ['#ffc2d1', '#ff7aa8', '#e5487f'],
+    };
+    const EMOJIS = ['📵','📚','🏃','💧','🧘','🥗','😴','✍️','🎸','🚭','🍷','🧹','💪','🌅','🙏','💰'];
 
     // ---------- date helpers (local time, keyed as YYYY-MM-DD) ----------
     const pad = n => String(n).padStart(2, '0');
     const keyOf = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
     const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
     const today = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
+    const isDayKey = k => /^\d{4}-\d{2}-\d{2}$/.test(k);
+    const uid = () => Math.random().toString(36).slice(2, 10);
+    const esc = s => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
     // ---------- storage ----------
+    // habits: [{ id, name, emoji, theme, days: Set<YYYY-MM-DD> }]
+    function defaultHabit(days = []) {
+      return { id: uid(), name: 'No phone', emoji: '📵', theme: 'ember', days: new Set(days) };
+    }
+    function hydrate(h) {
+      return {
+        id: String(h.id || uid()),
+        name: String(h.name || 'Habit').slice(0, 40),
+        emoji: String(h.emoji || '✅'),
+        theme: THEMES[h.theme] ? h.theme : 'ember',
+        days: new Set((h.days || []).filter(isDayKey)),
+      };
+    }
     function load() {
       try {
-        const raw = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
-        return new Set(Array.isArray(raw.days) ? raw.days : []);
-      } catch { return new Set(); }
+        const raw = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
+        if (raw && Array.isArray(raw.habits) && raw.habits.length) {
+          const habits = raw.habits.map(hydrate);
+          return { habits, activeId: habits.some(h => h.id === raw.activeId) ? raw.activeId : habits[0].id };
+        }
+      } catch {}
+      // first run, or upgrading from the single-habit version
+      let legacy = [];
+      try { legacy = (JSON.parse(localStorage.getItem(LEGACY_KEY) || '{}').days || []).filter(isDayKey); } catch {}
+      const h = defaultHabit(legacy);
+      return { habits: [h], activeId: h.id };
+    }
+    function serialize() {
+      return {
+        version: 2,
+        activeId: state.activeId,
+        habits: state.habits.map(h => ({ id: h.id, name: h.name, emoji: h.emoji, theme: h.theme, days: [...h.days].sort() })),
+      };
     }
     function save() {
-      try { localStorage.setItem(STORE_KEY, JSON.stringify({ days: [...days].sort() })); } catch {}
+      try { localStorage.setItem(STORE_KEY, JSON.stringify(serialize())); } catch {}
     }
     if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
 
-    let days = load();
+    const state = load();
+    save();
+    const active = () => state.habits.find(h => h.id === state.activeId) || state.habits[0];
     let viewMonth = (() => { const t = today(); return new Date(t.getFullYear(), t.getMonth(), 1); })();
 
     // ---------- streak maths ----------
-    function runEndingAt(d) {
+    function runEndingAt(days, d) {
       let n = 0;
       while (days.has(keyOf(d))) { n++; d = addDays(d, -1); }
       return n;
     }
-    function currentStreak() {
+    function currentStreak(days) {
       const t = today();
-      if (days.has(keyOf(t))) return { n: runEndingAt(t), todayDone: true };
-      return { n: runEndingAt(addDays(t, -1)), todayDone: false };
+      if (days.has(keyOf(t))) return { n: runEndingAt(days, t), todayDone: true };
+      return { n: runEndingAt(days, addDays(t, -1)), todayDone: false };
     }
-    function bestStreak() {
+    function bestStreak(days) {
       let best = 0;
       for (const k of days) {
         const [y, m, dd] = k.split('-').map(Number);
@@ -367,27 +533,48 @@
       if (n === 1) return 'Day one, done. The hardest step is behind you.';
       if (n < 4) return 'Momentum is building. Don’t break the chain.';
       if (n < 7) return 'Almost a full week. You can feel the difference.';
-      if (n < 14) return 'Over a week unplugged. You’re rewiring your habits.';
-      if (n < 21) return 'Two weeks of presence. This is who you are now.';
+      if (n < 14) return 'Over a week strong. You’re rewiring your habits.';
+      if (n < 21) return 'Two weeks in a row. This is who you are now.';
       if (n < 30) return 'Three weeks — a habit is forming. Keep the fire going.';
-      if (n < 60) return 'A month of real life. Truly remarkable.';
+      if (n < 60) return 'A whole month. Truly remarkable.';
       if (n < 100) return 'Unstoppable. Look at that chain.';
-      return 'Legendary. You’ve taken your time back.';
+      return 'Legendary. This habit is part of you now.';
+    }
+    function tickLabel(h) {
+      return h.emoji === '📵' && /phone/i.test(h.name) ? 'I stayed off my phone today' : `Tick “${h.name}” for today`;
     }
 
     // ---------- rendering ----------
     const $ = id => document.getElementById(id);
     const CIRC = 2 * Math.PI * 96;
+    const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="#0b0a14" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>';
 
-    function render() {
+    function applyTheme(h) {
+      const [a, b, c] = THEMES[h.theme];
+      const root = document.documentElement.style;
+      root.setProperty('--flame-1', a);
+      root.setProperty('--flame-2', b);
+      root.setProperty('--flame-3', c);
+    }
+
+    function render(bumpKey) {
+      const h = active();
       const t = today();
-      const { n, todayDone } = currentStreak();
+      applyTheme(h);
+      const { n, todayDone } = currentStreak(h.days);
+      const best = Math.max(bestStreak(h.days), n);
       // the ring fills toward the next milestone and stays full on the day you reach one
       const nextMs = MILESTONES.find(m => m >= Math.max(n, 1)) || (Math.ceil(n / 100) * 100);
       const prevMs = [0, ...MILESTONES].filter(m => m < nextMs).pop();
       const pct = (n - prevMs) / (nextMs - prevMs);
 
-      $('todayLabel').textContent = t.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
+      const doneCount = state.habits.filter(x => x.days.has(keyOf(t))).length;
+      $('todayLabel').innerHTML = esc(t.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })) +
+        (state.habits.length > 1 ? `<small>${doneCount} of ${state.habits.length} done today</small>` : '');
+
+      renderChips();
+      $('heroEmoji').textContent = h.emoji;
+      $('heroName').textContent = h.name;
       $('streakNum').textContent = n;
       $('streakNum').classList.toggle('zero', n === 0);
       $('streakLabel').textContent = n === 1 ? 'day streak' : 'days streak';
@@ -407,21 +594,38 @@
       const btn = $('tickBtn');
       btn.classList.toggle('done', todayDone);
       btn.setAttribute('aria-pressed', todayDone);
-      $('tickText').textContent = todayDone ? 'Today is ticked — well done' : 'I stayed off my phone today';
+      $('tickText').textContent = todayDone ? 'Today is ticked — well done' : tickLabel(h);
       $('tickSub').textContent = todayDone ? 'Tap again if you need to undo' : '';
 
-      $('statBest').textContent = Math.max(bestStreak(), n);
-      $('statTotal').textContent = days.size;
+      $('statBest').textContent = best;
+      $('statTotal').textContent = h.days.size;
       const monthStart = new Date(t.getFullYear(), t.getMonth(), 1);
       let ticked = 0;
-      for (let d = monthStart; d <= t; d = addDays(d, 1)) if (days.has(keyOf(d))) ticked++;
+      for (let d = monthStart; d <= t; d = addDays(d, 1)) if (h.days.has(keyOf(d))) ticked++;
       $('statMonth').textContent = Math.round((ticked / t.getDate()) * 100) + '%';
 
-      renderCalendar();
-      renderBadges(Math.max(bestStreak(), n), n);
+      renderCalendar(bumpKey);
+      renderBadges(best);
+    }
+
+    function renderChips() {
+      const tk = keyOf(today());
+      $('habits').innerHTML = state.habits.map(h => {
+        const [a, b, c] = THEMES[h.theme];
+        const { n } = currentStreak(h.days);
+        const on = h.days.has(tk);
+        return `<button class="chip ${h.id === state.activeId ? 'active' : ''}" data-id="${h.id}" style="--c1:${a};--c2:${b};--c3:${c}">
+          <span class="em">${esc(h.emoji)}</span><span>${esc(h.name)}</span>
+          ${n ? `<span class="cnt">🔥${n}</span>` : ''}
+          <span class="dot ${on ? 'on' : ''}">${on ? CHECK : ''}</span>
+        </button>`;
+      }).join('') + `<button class="chip add" id="addChip" aria-label="Add habit">＋ New habit</button>`;
+      const activeChip = $('habits').querySelector('.chip.active');
+      if (activeChip) activeChip.scrollIntoView({ block: 'nearest', inline: 'nearest' });
     }
 
     function renderCalendar(bumpKey) {
+      const days = active().days;
       const t = today();
       const y = viewMonth.getFullYear(), m = viewMonth.getMonth();
       const first = new Date(y, m, 1);
@@ -459,7 +663,7 @@
       $('nextMonth').disabled = y === t.getFullYear() && m === t.getMonth();
     }
 
-    function renderBadges(best, current) {
+    function renderBadges(best) {
       const nextUp = MILESTONES.find(m => m > best);
       $('badges').innerHTML = MILESTONES.map(m => {
         const cls = best >= m ? 'earned' : (m === nextUp ? 'next' : '');
@@ -470,24 +674,36 @@
 
     // ---------- interactions ----------
     function toggle(k) {
-      const before = currentStreak().n;
-      const bestBefore = bestStreak();
-      const adding = !days.has(k);
-      if (adding) days.add(k); else days.delete(k);
+      const h = active();
+      const before = currentStreak(h.days).n;
+      const bestBefore = bestStreak(h.days);
+      const adding = !h.days.has(k);
+      if (adding) h.days.add(k); else h.days.delete(k);
       save();
-      render();
-      renderCalendar(adding ? k : null);
+      render(adding ? k : null);
       if (adding) {
-        const after = currentStreak().n;
+        const after = currentStreak(h.days).n;
         const hit = MILESTONES.find(m => after >= m && before < m && bestBefore < m);
         if (hit) {
           confetti(220);
-          toast(`🔥 ${hit >= 365 ? 'One year' : hit + ' days'} unplugged! Milestone unlocked.`);
+          toast(`🔥 ${hit >= 365 ? 'One year' : hit + '-day streak'} of ${h.name}! Milestone unlocked.`);
         } else {
           confetti(70);
-          if (k === keyOf(today())) toast(after > 1 ? `${after} days in a row. Keep going!` : 'Day one. Let’s go! ✨');
+          if (k === keyOf(today())) {
+            const tk = keyOf(today());
+            const allDone = state.habits.length > 1 && state.habits.every(x => x.days.has(tk));
+            toast(allDone ? 'Every habit ticked today. Perfect day! ✨'
+              : after > 1 ? `${after} days in a row. Keep going!` : 'Day one. Let’s go! ✨');
+          }
         }
       }
+    }
+
+    function selectHabit(id) {
+      if (id === state.activeId) return;
+      state.activeId = id;
+      save();
+      render();
     }
 
     $('tickBtn').addEventListener('click', () => {
@@ -500,6 +716,13 @@
       if (!cell || cell.classList.contains('empty') || cell.classList.contains('future')) return;
       toggle(cell.dataset.key);
     });
+    $('habits').addEventListener('click', e => {
+      const chip = e.target.closest('.chip');
+      if (!chip) return;
+      if (chip.id === 'addChip') openSheet(null);
+      else selectHabit(chip.dataset.id);
+    });
+    $('editBtn').addEventListener('click', () => openSheet(active()));
     $('prevMonth').addEventListener('click', () => { viewMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth() - 1, 1); renderCalendar(); });
     $('nextMonth').addEventListener('click', () => { viewMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 1); renderCalendar(); });
 
@@ -513,9 +736,73 @@
       (dx > 0 ? $('prevMonth') : $('nextMonth')).click();
     });
 
-    // backup / restore
+    // ---------- habit editor ----------
+    let editing = null; // habit being edited, or null when creating
+    let draft = { emoji: EMOJIS[0], theme: 'ember' };
+
+    function renderPickers() {
+      // preview the chosen colour on the sheet itself
+      THEMES[draft.theme].forEach((c, i) => $('sheet').style.setProperty(`--flame-${i + 1}`, c));
+      $('emojiGrid').innerHTML = EMOJIS.map(e => `<button type="button" data-e="${e}" class="${e === draft.emoji ? 'sel' : ''}">${e}</button>`).join('');
+      $('swatches').innerHTML = Object.entries(THEMES).map(([k, [a, b, c]]) =>
+        `<button type="button" data-t="${k}" aria-label="${k}" class="${k === draft.theme ? 'sel' : ''}" style="background:linear-gradient(135deg,${a},${b} 55%,${c})"></button>`).join('');
+    }
+    function openSheet(h) {
+      editing = h;
+      const usedThemes = new Set(state.habits.map(x => x.theme));
+      draft = h ? { emoji: h.emoji, theme: h.theme }
+        : { emoji: EMOJIS.find(e => !state.habits.some(x => x.emoji === e)) || EMOJIS[0],
+            theme: Object.keys(THEMES).find(t => !usedThemes.has(t)) || 'ember' };
+      $('sheetTitle').textContent = h ? 'Edit habit' : 'New habit';
+      $('nameInput').value = h ? h.name : '';
+      $('deleteBtn').hidden = !h || state.habits.length < 2;
+      renderPickers();
+      $('saveBtn').disabled = !$('nameInput').value.trim();
+      $('scrim').classList.add('open');
+      $('sheet').classList.add('open');
+      if (!h) setTimeout(() => $('nameInput').focus(), 350);
+    }
+    function closeSheet() {
+      $('scrim').classList.remove('open');
+      $('sheet').classList.remove('open');
+      $('nameInput').blur();
+    }
+    $('emojiGrid').addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      draft.emoji = b.dataset.e; renderPickers();
+    });
+    $('swatches').addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      draft.theme = b.dataset.t; renderPickers();
+    });
+    $('nameInput').addEventListener('input', () => { $('saveBtn').disabled = !$('nameInput').value.trim(); });
+    $('scrim').addEventListener('click', closeSheet);
+    $('cancelBtn').addEventListener('click', closeSheet);
+    $('sheet').addEventListener('submit', e => {
+      e.preventDefault();
+      const name = $('nameInput').value.trim().slice(0, 40);
+      if (!name) return;
+      if (editing) Object.assign(editing, { name, emoji: draft.emoji, theme: draft.theme });
+      else {
+        const h = { id: uid(), name, emoji: draft.emoji, theme: draft.theme, days: new Set() };
+        state.habits.push(h);
+        state.activeId = h.id;
+      }
+      save(); closeSheet(); render();
+      if (!editing) toast(`${draft.emoji} ${name} added. Day one starts now.`);
+    });
+    $('deleteBtn').addEventListener('click', () => {
+      const h = editing;
+      if (!h || state.habits.length < 2) return;
+      if (!confirm(`Delete “${h.name}” and its ${h.days.size} ticked day${h.days.size === 1 ? '' : 's'}? This can’t be undone.`)) return;
+      state.habits = state.habits.filter(x => x.id !== h.id);
+      state.activeId = state.habits[0].id;
+      save(); closeSheet(); render();
+    });
+
+    // ---------- backup / restore ----------
     $('exportBtn').addEventListener('click', async () => {
-      const data = JSON.stringify({ app: 'unplugged', version: 1, days: [...days].sort() }, null, 2);
+      const data = JSON.stringify({ app: 'unplugged', ...serialize() }, null, 2);
       const file = new File([data], `unplugged-backup-${keyOf(today())}.json`, { type: 'application/json' });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         try { await navigator.share({ files: [file], title: 'Unplugged backup' }); return; } catch (e) { if (e.name === 'AbortError') return; }
@@ -529,10 +816,19 @@
       const f = e.target.files[0]; if (!f) return;
       try {
         const parsed = JSON.parse(await f.text());
-        const list = (parsed.days || []).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k));
-        list.forEach(k => days.add(k));
+        // v1 backups hold a single list of days for the phone habit
+        const incoming = Array.isArray(parsed.habits) ? parsed.habits.map(hydrate)
+          : [{ ...defaultHabit((parsed.days || []).filter(isDayKey)) }];
+        let total = 0;
+        for (const inc of incoming) {
+          const match = state.habits.find(h => h.id === inc.id) ||
+            state.habits.find(h => h.name.toLowerCase() === inc.name.toLowerCase());
+          if (match) inc.days.forEach(k => match.days.add(k));
+          else state.habits.push(inc);
+          total += inc.days.size;
+        }
         save(); render();
-        toast(`Restored ${list.length} days ✓`);
+        toast(`Restored ${incoming.length} habit${incoming.length === 1 ? '' : 's'} · ${total} days ✓`);
       } catch { toast('That file could not be read'); }
       e.target.value = '';
     });
@@ -570,7 +866,7 @@
     addEventListener('resize', sizeCanvas); sizeCanvas();
     function confetti(count) {
       if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      const colors = ['#ffb547', '#ff6a3d', '#ff3d7f', '#b18cff', '#7cf0b5', '#fff3d6'];
+      const colors = [...THEMES[active().theme], '#b18cff', '#7cf0b5', '#fff3d6'];
       const r = $('tickBtn').getBoundingClientRect();
       const ox = r.left + r.width / 2, oy = r.top + r.height / 2;
       for (let i = 0; i < count; i++) {
