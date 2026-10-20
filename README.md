@@ -2,7 +2,7 @@
 
 Unplugged is a small web app for tracking daily habits, starting with the days you don't use your phone. Each day you tick a habit off, and the ticks join into a chain so you can see your streak build.
 
-- **Multiple habits**, each with its own icon, colour theme, streak, calendar and milestones. Switch between them with the chips at the top, which also show what you've ticked today. Add a habit with **＋ New habit**, or edit or delete one with the pencil
+- **Multiple habits**, each with its own icon, colour theme, streak, calendar and milestones. Switch between them with the chips at the top, which also show what you've ticked today. Add a habit with the **＋** button (pick a suggestion or type your own), or edit or delete one with the pencil
 - **Big streak counter** with a progress ring that fills toward your next milestone
 - **One-tap tick** for today, with confetti; tap again to undo
 - **Calendar** where consecutive ticks join into one continuous bar. Tap any past day to fix it, and swipe to change months
