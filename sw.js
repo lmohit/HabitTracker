@@ -1,5 +1,5 @@
 // Offline support: the page is network-first, other assets come from cache and refresh in the background.
-const CACHE = 'unplugged-v3';
+const CACHE = 'unplugged-v4';
 const ASSETS = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon.svg', 'icons/apple-touch-icon.png', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -33,7 +33,9 @@ self.addEventListener('fetch', e => {
     caches.match(e.request).then(cached => {
       const network = fetch(e.request)
         .then(res => {
-          if (res.ok && new URL(e.request.url).origin === location.origin) {
+          const host = new URL(e.request.url).host;
+          const fonts = host === 'fonts.googleapis.com' || host === 'fonts.gstatic.com';
+          if ((res.ok && host === location.host) || (fonts && (res.ok || res.type === 'opaque'))) {
             const copy = res.clone();
             caches.open(CACHE).then(c => c.put(e.request, copy));
           }

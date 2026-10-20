@@ -2,12 +2,12 @@
 
 Unplugged is a small web app for tracking daily habits, starting with the days you don't use your phone. Each day you tick a habit off, and the ticks join into a chain so you can see your streak build.
 
-- **Multiple habits**, each with its own icon, colour theme, streak, calendar and milestones. Switch between them with the chips at the top, which also show what you've ticked today. Add a habit with the **＋** button (pick a suggestion or type your own), or edit or delete one with the pencil
-- **Big streak counter** with a progress ring that fills toward your next milestone
-- **One-tap tick** for today, with confetti; tap again to undo
-- **Calendar** where consecutive ticks join into one continuous bar. Tap any past day to fix it, and swipe to change months
-- **Milestones** at 3, 7, 14, 21, 30, 60 and 100 days, and 1 year
-- **Stats:** best streak, total days, and this month's %
+- **Today screen** lists every habit with a one-tap tick button and a 14-day chain. Links between days only light up when the days are consecutive
+- **Perfect days:** a summary card shows how many habits you've done today, and counts a streak of days where you ticked them all
+- **Each habit has its own colour** (8 to choose from), which themes its card and its own screen
+- **Habit screen** with a big streak number, longest chain, total days, this month's %, an 18-week grid, milestones (3, 7, 14, 21, 30, 60, 100, 180 days, 1 year) and a calendar where you can tick or untick past days
+- **Add, edit or delete habits:** tap **＋** to pick a suggestion or type your own; the pencil on a habit's screen edits it
+- **Confetti and messages** when you tick, hit a milestone, or have a perfect day
 - **Works offline** and installs to your iPhone home screen
 - **Back up / Restore** all habits to a JSON file (your data lives only on your device)
 
